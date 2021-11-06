@@ -1,0 +1,969 @@
+import java.awt.Desktop;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.Scanner;
+
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JFileChooser;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JMenu;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTextField;
+
+public class Framebenenner extends JFrame { // TODO: Einmal komplett durchprobieren!
+
+	static String path;
+	static String File;
+	static String folderpath = "nope";
+	static String bname;
+
+	static String game;
+	static String name;
+	static String kuerzel = "other";
+	static String lastg = " ";
+
+	static String clipss;
+	static String ziels;
+
+	static List<String> folder = new ArrayList<String>();
+	static String[] n;
+
+	static boolean back = false;
+	static boolean weiter = false;
+	static boolean fileopen = true;
+
+	static File random;
+	static File folders;
+	static File choosedfile;
+
+	static File localFile;
+	static File localFolder;
+
+	static JComboBox games;
+
+	static JLabel gl;
+	static JLabel nl;
+	static JLabel hl;
+
+	static JButton nb;
+	static JButton fb;
+	static JButton lb;
+	static JButton nob;
+	static JButton ovb;
+	static JButton nvb;
+
+	static JTextField nt;
+	static JTextField nnt;
+	static JTextField nft;
+
+	static JDialog nn;
+	static JDialog ld;
+	static JDialog nfd;
+	static JDialog hd;
+	
+	
+	static JMenuItem backk;
+
+	public Framebenenner() {
+		String p = System.getProperty("user.home");
+
+		localFolder = new File(p + "/AppData/Local/ClipBennener");
+		localFile = new File(p + "/AppData/Local/ClipBennener/path.txt");
+
+		if (localFile.exists()) {
+			load(localFile);
+			File sd = new File(folderpath);
+			File d = new File(path);
+			if(sd.canExecute() && d.canExecute()) {
+				listDirtest(sd);
+			}else {
+				JOptionPane.showMessageDialog(null, "Es ist leider ein Schwerwiegender Fehler aufgetreten! Bitte wähle die Pfade neu aus!");
+				File clips = null;
+				File ziel = null;
+
+				File t = new File(p);
+				JFileChooser chooser = new JFileChooser();
+				chooser.setCurrentDirectory(t);
+				chooser.setDialogTitle("Wähle den Clip Ordner aus");
+				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+				chooser.setAcceptAllFileFilterUsed(false);
+
+				if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+					clips = chooser.getSelectedFile();
+				}
+
+				JFileChooser chooserf = new JFileChooser();
+				chooserf.setCurrentDirectory(t);
+				chooserf.setDialogTitle("Wähle den Sammelordner aus");
+				chooserf.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+				chooserf.setAcceptAllFileFilterUsed(false);
+
+				if (chooserf.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+					ziel = chooserf.getSelectedFile();
+				}
+
+				clipss = clips.getAbsolutePath();
+				ziels = ziel.getAbsolutePath();
+
+				save(localFile);
+
+				load(localFile);
+
+				sd = new File(folderpath);
+				listDirtest(sd);
+			}
+
+
+		} else {
+			create(localFolder, localFile);
+
+			File clips = null;
+			File ziel = null;
+
+			File t = new File(p);
+			JFileChooser chooser = new JFileChooser();
+			chooser.setCurrentDirectory(t);
+			chooser.setDialogTitle("Wähle den Clip Ordner aus");
+			chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+			chooser.setAcceptAllFileFilterUsed(false);
+
+			if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+				clips = chooser.getSelectedFile();
+			}
+
+			JFileChooser chooserf = new JFileChooser();
+			chooserf.setCurrentDirectory(t);
+			chooserf.setDialogTitle("Wähle den Sammelordner aus");
+			chooserf.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+			chooserf.setAcceptAllFileFilterUsed(false);
+
+			if (chooserf.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+				ziel = chooserf.getSelectedFile();
+			}
+
+			clipss = clips.getAbsolutePath();
+			ziels = ziel.getAbsolutePath();
+
+			save(localFile);
+
+			load(localFile);
+
+			File sd = new File(folderpath);
+			listDirtest(sd);
+
+		}
+
+		
+		folders = new File(folderpath);
+		listDir2(folders);
+		n = folder.toArray(new String[0]);
+
+		setVisible(true);
+		setSize(800, 600);
+		setDefaultCloseOperation(EXIT_ON_CLOSE);
+		setLocation(0, 0);
+		setTitle("Clip Benenner");
+		setResizable(false);
+		setLayout(null);
+
+		JMenuBar menu = new JMenuBar();
+		setJMenuBar(menu);
+
+		JMenu info = new JMenu("Dateien"); // Hinzufügen
+		menu.add(info);
+		
+		JMenu options = new JMenu("Optionen"); // Hinzufügen
+		menu.add(options);
+
+		JMenuItem open = new JMenuItem("Öffnen");
+		open.addActionListener(new open());
+		info.add(open);
+		
+		backk = new JMenuItem("Hauptmenu");
+		backk.addActionListener(new back());
+		backk.setVisible(false);
+		info.add(backk);
+		
+		JCheckBoxMenuItem op = new JCheckBoxMenuItem("Keine MP4 Öffnen");
+		op.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if (op.getState() == true) {
+					fileopen = false;
+				}else {
+					fileopen = true;
+				}
+			}
+
+		});
+		options.add(op);
+		
+		
+
+		nb = new JButton("Neu");
+		nb.setBounds(350, 10, 125, 75);
+		nb.setFont(new Font("Verdana", Font.BOLD, 20));
+		add(nb);
+		nb.setVisible(true);
+		nb.addActionListener(new nb());
+
+		ovb = new JButton("Verschieben");
+		ovb.setBounds(313, 140, 200, 50);
+		ovb.setFont(new Font("Verdana", Font.BOLD, 20));
+		add(ovb);
+		ovb.setVisible(true);
+		ovb.addActionListener(new ovb());
+
+		nob = new JButton("Neuer Ordner");
+		nob.setBounds(313, 210, 200, 50);
+		nob.setFont(new Font("Verdana", Font.BOLD, 20));
+		add(nob);
+		nob.setVisible(true);
+		nob.addActionListener(new nob());
+
+		nvb = new JButton("Neue Pfade");
+		nvb.setBounds(313, 280, 200, 50);
+		nvb.setFont(new Font("Verdana", Font.BOLD, 20));
+		add(nvb);
+		nvb.setVisible(true);
+		nvb.addActionListener(new nvb());
+
+		gl = new JLabel("Spiel:");
+		gl.setBounds(50, 50, 250, 50);
+		gl.setFont(new Font("Verdana", Font.BOLD, 20));
+		add(gl);
+		gl.setVisible(false);
+
+		nl = new JLabel("Clipname:");
+		nl.setBounds(50, 150, 250, 50);
+		nl.setFont(new Font("Verdana", Font.BOLD, 20));
+		add(nl);
+		nl.setVisible(false);
+
+		hl = new JLabel("!DENK DRAN DEN PLAYER VORHER ZU SCHLIEßEN!");
+		hl.setBounds(100, 500, 1000, 50);
+		hl.setFont(new Font("Verdana", Font.BOLD, 20));
+		add(hl);
+		hl.setVisible(false);
+
+		games = new JComboBox(n);
+		games.setBounds(240, 63, 200, 35);
+		games.setFont(new Font("Verdana", Font.BOLD, 20));
+		add(games);
+		games.setVisible(false);
+		games.addItemListener(new game());
+
+		lb = new JButton("Löschen");
+		lb.setBounds(337, 360, 150, 50);
+		lb.setFont(new Font("Verdana", Font.BOLD, 20));
+		add(lb);
+		lb.setVisible(false);
+		lb.addActionListener(new lb());
+
+		fb = new JButton("Senden");
+		fb.setBounds(350, 285, 125, 50);
+		fb.setFont(new Font("Verdana", Font.BOLD, 20));
+		add(fb);
+		fb.setVisible(false);
+		fb.addActionListener(new fb());
+
+		nt = new JTextField(20);
+		nt.setBounds(240, 150, 450, 50);
+		nt.setFont(new Font("Verdana", Font.CENTER_BASELINE, 20));
+		nt.selectAll();
+		add(nt);
+		nt.setVisible(false);
+
+		nob.setText("Neuer Ordner");
+		nob.setVisible(true);
+
+	}
+	public static class back implements ActionListener {
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			backk.setVisible(false);
+			nb.setVisible(true);
+			games.setVisible(false);
+			nl.setVisible(false);
+			gl.setVisible(false);
+			hl.setVisible(false);
+			nt.setVisible(false);
+			fb.setVisible(false);
+			lb.setVisible(false);
+			ovb.setVisible(true);
+			nvb.setVisible(true);
+			nob.setBounds(313, 210, 200, 50);
+			nt.setText("");
+			
+		}
+		
+	}
+
+	public static class nvb implements ActionListener {
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			String p = System.getProperty("user.home");
+			File clips = null;
+			File ziel = null;
+
+			File t = new File(p);
+			JFileChooser chooser = new JFileChooser();
+			chooser.setCurrentDirectory(t);
+			chooser.setDialogTitle("Wähle den Clip Ordner aus");
+			chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+			chooser.setAcceptAllFileFilterUsed(false);
+
+			if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+				clips = chooser.getSelectedFile();
+			}
+
+			JFileChooser chooserf = new JFileChooser();
+			chooserf.setCurrentDirectory(t);
+			chooserf.setDialogTitle("Wähle den Sammelordner aus");
+			chooserf.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+			chooserf.setAcceptAllFileFilterUsed(false);
+
+			if (chooserf.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+				ziel = chooserf.getSelectedFile();
+			}
+
+			clipss = clips.getAbsolutePath();
+			ziels = ziel.getAbsolutePath();
+
+			save(localFile);
+
+			load(localFile);
+
+		}
+
+	}
+
+	private static void save(File localFile) {
+		File localfile = localFile;
+
+		String contenstowrite = clipss + "\n" + ziels;
+
+		try {
+			OutputStream outstream = new FileOutputStream(localfile);
+			outstream.write(contenstowrite.getBytes());
+			outstream.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+
+	private static void load(File localFile) {
+		File localfile = localFile;
+
+		if (localfile.exists()) {
+
+			Scanner sc2;
+			try {
+				sc2 = new Scanner(localfile);
+
+				if (sc2.hasNextLine()) {
+					path = sc2.nextLine();
+					folderpath = sc2.nextLine();
+				}
+				sc2.close();
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+		}
+
+	}
+
+	private void create(File localFolder, File localFile) {
+		File localfile = localFile;
+		File localfolder = localFolder;
+
+		if (!localfolder.exists()) {
+			localfolder.mkdirs();
+		}
+
+		if (!localfile.exists()) {
+			localfolder.mkdir();
+		}
+
+	}
+
+	public static class ovb implements ActionListener {
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+
+			if (back == true) {
+				File f = new File(folderpath + "/Sonstiges/" + bname);
+
+				f.renameTo(new File(folderpath + "/" + bname));
+				back = false;
+				choosedfile = null;
+				ovb.setText("Verschieben");
+			} else {
+				File t = new File(folderpath);
+				JFileChooser chooser = new JFileChooser();
+				chooser.setCurrentDirectory(t);
+				chooser.setDialogTitle("Wähle den Ordner zum verschieben aus");
+				chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+				chooser.setAcceptAllFileFilterUsed(false);
+
+				if (chooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+					choosedfile = chooser.getSelectedFile();
+					back = true;
+					ovb.setText("Rückgängig");
+					System.out.println(choosedfile);
+					bname = choosedfile.getName();
+					choosedfile.renameTo(new File(folderpath + "/Sonstiges/" + bname));
+				}
+
+			}
+
+		}
+
+	}
+
+	public static class nob implements ActionListener {
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			nfd = new JDialog();
+			JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT));
+			p.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 0));
+
+			JLabel nfl = new JLabel("Wie soll der Neue Ordner heißen");
+			nfl.setFont(new Font("Verdana", Font.BOLD, 20));
+			p.add(nfl);
+			nfl.setVisible(true);
+
+			nft = new JTextField(15);
+			nft.setFont(new Font("Verdana", Font.CENTER_BASELINE, 20));
+			nft.selectAll();
+			p.add(nft);
+			nft.setVisible(true);
+
+			JButton nfb = new JButton("Erstellen");
+			nfb.setFont(new Font("Verdana", Font.BOLD, 20));
+			p.add(nfb);
+			nfb.setVisible(true);
+			nfb.addActionListener(new nfb());
+
+			nfd.setTitle("Neuer Ordner");
+			nfd.setSize(400, 200);
+			nfd.setLocation(0, 0);
+			nfd.add(p);
+			nfd.setModal(true);
+			nfd.setResizable(false);
+			nfd.setLocationRelativeTo(null);
+			nfd.setVisible(true);
+
+		}
+
+	}
+
+	public static class nfb implements ActionListener {
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			String b = nft.getText();
+			File cre = new File(folderpath + "/" + b);
+
+			create(cre, b);
+
+		}
+
+		private void create(File cre, String b) {
+			File localfolder = cre;
+
+			if (!localfolder.exists()) {
+				localfolder.mkdirs();
+				JOptionPane.showMessageDialog(null, "Der Ordner " + b + " wurde erstellt!");
+				nfd.dispose();
+			} else {
+				JOptionPane.showMessageDialog(null, "Diesen Ordner gibt es schon!");
+			}
+
+		}
+
+	}
+
+	public static class lb implements ActionListener {
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			ld = new JDialog();
+			JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT));
+			p.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 0));
+
+			JLabel ll = new JLabel("Du bist sicher das du den Clip LÖSCHEN willst?");
+			ll.setFont(new Font("Verdana", Font.BOLD, 20));
+			p.add(ll);
+			ll.setVisible(true);
+
+			JButton lbj = new JButton("Ja");
+			lbj.setFont(new Font("Verdana", Font.BOLD, 20));
+			p.add(lbj);
+			lbj.setVisible(true);
+			lbj.addActionListener(new lbj());
+
+			JButton lbn = new JButton("Nein!");
+			lbn.setFont(new Font("Verdana", Font.BOLD, 20));
+			p.add(lbn);
+			lbn.setVisible(true);
+			lbn.addActionListener(new lbn());
+
+			ld.setTitle("File löschen?");
+			ld.setSize(400, 200);
+			ld.setLocation(0, 0);
+			ld.add(p);
+			ld.setModal(true);
+			ld.setResizable(false);
+			ld.setLocationRelativeTo(null);
+			ld.setVisible(true);
+
+		}
+
+	}
+
+	public static class lbn implements ActionListener {
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			JOptionPane.showMessageDialog(null, "Die Datei wurde NICHT gelöscht");
+			ld.dispose();
+
+		}
+
+	}
+
+	public static class lbj implements ActionListener {
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			File d = new File(File);
+
+			if (!d.delete()) {
+				JOptionPane.showMessageDialog(null, "Bitte schließ den Player vorher!");
+			} else {
+				JOptionPane.showMessageDialog(null, "Die Datei wurde erfolgreich gelöscht");
+				ld.dispose();
+			}
+			
+			backk.setVisible(false);
+			nb.setVisible(true);
+			games.setVisible(false);
+			nl.setVisible(false);
+			gl.setVisible(false);
+			hl.setVisible(false);
+			nt.setVisible(false);
+			fb.setVisible(false);
+			lb.setVisible(false);
+			ovb.setVisible(true);
+			nvb.setVisible(true);
+			nob.setBounds(313, 210, 200, 50);
+			nt.setText("");
+
+		}
+
+	}
+
+	public static class open implements ActionListener {
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			try {
+				Desktop.getDesktop().browse(new File(path).toURI());
+				Desktop.getDesktop().browse(new File(folderpath).toURI());
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
+
+	}
+
+	public class fb implements ActionListener {
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			name = nt.getText();
+			kuerzel = "other";
+
+			String url = "jdbc:mysql://45.81.232.16:3306/Clipkuerzel";
+			String user = "jay_lp_77710";
+			String pass = "P7qdPhvfYh8ByHE6";
+
+			try (Connection con = DriverManager.getConnection(url, user, pass)) {
+				System.out.println("Verbunden");
+
+				// Auslesen
+				String query = "SELECT short FROM kuerzel WHERE game='" + game + "'";
+				Statement stmt = con.createStatement();
+				ResultSet rs = stmt.executeQuery(query);
+
+				int columns = rs.getMetaData().getColumnCount();
+				while (rs.next()) {
+					for (int i = 1; i <= columns; i++) {
+						kuerzel = rs.getString(i);
+
+					}
+					System.out.println();
+				}
+
+				if (kuerzel.contentEquals("other")) {
+					nn = new JDialog();
+					JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT));
+					p.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 0));
+
+					JLabel nnl = new JLabel("Wie soll das Kürzel für " + game + " sein");
+					nnl.setFont(new Font("Verdana", Font.BOLD, 20));
+					p.add(nnl);
+					nnl.setVisible(true);
+
+					nnt = new JTextField(5);
+					nnt.setFont(new Font("Verdana", Font.CENTER_BASELINE, 20));
+					nnt.selectAll();
+					p.add(nnt);
+					nnt.setVisible(true);
+
+					JButton nnb = new JButton("Fertig");
+					nnb.setFont(new Font("Verdana", Font.BOLD, 20));
+					p.add(nnb);
+					nnb.setVisible(true);
+					nnb.addActionListener(new nnb());
+
+					nn.setTitle("Kein Kürzel gefunden");
+					nn.setSize(400, 200);
+					nn.setLocation(0, 0);
+					nn.add(p);
+					nn.setModal(true);
+					nn.setResizable(false);
+					nn.setLocationRelativeTo(null);
+					nn.setVisible(true);
+				}
+				lastg = game;
+				rs.close();
+				stmt.close();
+				games.setSelectedItem(lastg);
+				game = lastg;
+				nt.setText("");
+
+			} catch (SQLException ec) {
+				System.out.println(ec.getMessage());
+			}
+
+			File sd = new File(folderpath);
+			listDirtest(sd);
+
+			if (weiter == true) {
+				File oldFile = new File(File);
+
+				if (game.contentEquals("Talks")) {
+
+					if (!oldFile.renameTo(new File(folderpath + "/" + game + "/" + name + ".mp4"))) {
+						JOptionPane.showMessageDialog(null, "Bitte schließ den Player vorher oder der Name ist bereits vorhanden!");
+					} else {
+						JOptionPane.showMessageDialog(null, "Die Datei wurde verschoben!");
+						nb.setVisible(true);
+						games.setVisible(false);
+						nl.setVisible(false);
+						gl.setVisible(false);
+						hl.setVisible(false);
+						nt.setVisible(false);
+						fb.setVisible(false);
+						lb.setVisible(false);
+						ovb.setVisible(true);
+						nvb.setVisible(true);
+						backk.setVisible(false);
+						nob.setBounds(313, 210, 200, 50);
+					}
+
+				} else {
+					if (!oldFile.renameTo(new File(folderpath + "/" + game + "/" + kuerzel + " " + name + ".mp4"))) {
+						JOptionPane.showMessageDialog(null, "Bitte schließ den Player vorher oder der Name ist bereits vorhanden!");
+					} else {
+						JOptionPane.showMessageDialog(null, "Die Datei wurde verschoben!");
+						nb.setVisible(true);
+						games.setVisible(false);
+						nl.setVisible(false);
+						gl.setVisible(false);
+						hl.setVisible(false);
+						nt.setVisible(false);
+						fb.setVisible(false);
+						lb.setVisible(false);
+						ovb.setVisible(true);
+						nvb.setVisible(true);
+						backk.setVisible(false);
+						nob.setBounds(313, 210, 200, 50);
+					}
+				}
+			} else {
+				JOptionPane.showMessageDialog(null, "Dein Zielordner ist Leer! Füge einen anderen hinzu!");
+			}
+
+		}
+
+	}
+
+	public void listDirtest(File dir) {
+		File[] files = dir.listFiles();
+
+		if (files.length == 0) {
+			weiter = false;
+
+			hd = new JDialog();
+			JPanel p = new JPanel(new FlowLayout(FlowLayout.LEFT));
+			p.setBorder(BorderFactory.createEmptyBorder(10, 10, 0, 0));
+
+			JLabel il = new JLabel("Willst du die Standardgames erstellen?");
+			il.setFont(new Font("Verdana", Font.BOLD, 15));
+			p.add(il);
+			il.setVisible(true);
+
+			JButton ibj = new JButton("Ja");
+			ibj.setFont(new Font("Verdana", Font.BOLD, 20));
+			p.add(ibj);
+			ibj.setVisible(true);
+			ibj.addActionListener(new ibj());
+
+			JButton ibn = new JButton("Nein");
+			ibn.setFont(new Font("Verdana", Font.BOLD, 20));
+			p.add(ibn);
+			ibn.setVisible(true);
+			ibn.addActionListener(new ibn());
+
+			hd.setTitle("Hinzufügen");
+			hd.setSize(400, 200);
+			hd.setLocation(0, 0);
+			hd.add(p);
+			hd.setModal(true);
+			hd.setResizable(false);
+			hd.setLocationRelativeTo(null);
+			hd.setVisible(true);
+
+		} else {
+			weiter = true;
+		}
+	}
+
+	public class ibn implements ActionListener {
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			JOptionPane.showMessageDialog(null,
+					"Die Ordner werden nicht erstellt! Füge sie manuell hinzu sonst Funktioniert das Programm nicht!");
+			hd.dispose();
+
+		}
+
+	}
+
+	public class ibj implements ActionListener {
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			String url = "jdbc:mysql://45.81.232.16:3306/Clipkuerzel";
+			String user = "jay_lp_77710";
+			String pass = "P7qdPhvfYh8ByHE6";
+
+			try (Connection con = DriverManager.getConnection(url, user, pass)) {
+				System.out.println("Verbunden");
+
+				// Auslesen
+				String query = "SELECT game FROM kuerzel";
+				Statement stmt = con.createStatement();
+				ResultSet rs = stmt.executeQuery(query);
+
+				int columns = rs.getMetaData().getColumnCount();
+				while (rs.next()) {
+					for (int i = 1; i <= columns; i++) {
+						String name = rs.getString(i);
+
+						File cr = new File(folderpath + "/" + name);
+						creat(cr);
+
+					}
+					File cr = new File(folderpath + "/Sonstiges");
+					creat(cr);
+					
+					System.out.println();
+				}
+
+				rs.close();
+				stmt.close();
+				hd.dispose();
+
+			} catch (SQLException ec) {
+				System.out.println(ec.getMessage());
+			}
+
+		}
+
+		private void creat(File cr) {
+			File localfolder = cr;
+
+			if (!localfolder.exists()) {
+				localfolder.mkdirs();
+			} else {
+				JOptionPane.showMessageDialog(null, "Dieser Ordner ist bereits vorhanden");
+			}
+
+		}
+
+	}
+
+	public class nnb implements ActionListener {
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			kuerzel = nnt.getText();
+
+			String url = "jdbc:mysql://45.81.232.16:3306/Clipkuerzel";
+			String user = "jay_lp_77710";
+			String pass = "P7qdPhvfYh8ByHE6";
+
+			try (Connection con = DriverManager.getConnection(url, user, pass)) {
+
+				// Einfügen/Verändern
+				String query = "INSERT INTO kuerzel (game, short) VALUES ('" + game + "', '" + kuerzel + "')"; // Einfügen
+				Statement stmt = con.createStatement();
+				stmt.executeUpdate(query);
+				stmt.close();
+
+			} catch (SQLException ec) {
+				System.out.println(ec.getMessage());
+			}
+
+			nn.dispose();
+
+		}
+
+	}
+
+	public class nb implements ActionListener {
+
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			backk.setVisible(true);
+			random = new File(path);
+			listDir(random);
+
+			nb.setVisible(false);
+			games.setVisible(true);
+			nl.setVisible(true);
+			gl.setVisible(true);
+			hl.setVisible(true);
+			nt.setVisible(true);
+			fb.setVisible(true);
+			lb.setVisible(true);
+			ovb.setVisible(false);
+			nvb.setVisible(false);
+			nob.setBounds(10, 210, 200, 50);
+
+			File f = new File(File);
+			try {
+				if(fileopen == true) {
+					Desktop.getDesktop().browse(new File(File).toURI());
+				}else {
+					Desktop.getDesktop().browse(new File(path).toURI());
+				}
+				
+				
+			} catch (IOException es) {
+				// TODO Auto-generated catch block
+				es.printStackTrace();
+			}
+
+		}
+
+	}
+
+	public class game implements ItemListener {
+
+		@Override
+		public void itemStateChanged(ItemEvent e) {
+			if (e.getStateChange() == ItemEvent.SELECTED) {
+				if (!games.getSelectedItem().toString().equals("---Wähle---")) {
+					game = games.getSelectedItem().toString();
+				}
+
+			}
+
+		}
+
+	}
+
+	public void listDir2(File dir) {
+		File[] files = dir.listFiles();
+		folder.add("---Wähle---");
+
+		for (int i = 0; i < files.length; i++) {
+
+			if (!files[i].isHidden()) {
+				String s = files[i].getName();
+				folder.add(s);
+			}
+		}
+
+	}
+
+	public void listDir(File dir) {
+		File[] files = dir.listFiles();
+
+		boolean c = false;
+		int t = 0;
+		while (c == false) {
+			Random rand = new Random();
+			int n = rand.nextInt(files.length);
+			if (n < 0) {
+				n = 0;
+			}
+			File = null;
+			for (int i = 0; i < files.length; i++) {
+				if (i == n) {
+					File = files[i].getAbsolutePath();
+					String format = File.substring(File.lastIndexOf(".") + 1);
+					if (format.contentEquals("mp4")) {
+						c = true;
+					} else {
+						t++;
+						if (t == 50) {
+							JOptionPane.showMessageDialog(null, "Du hast keine Clips in deinem Ordner");
+							System.exit(0);
+						}
+					}
+				}
+			}
+		}
+		
+
+	}
+
+}
